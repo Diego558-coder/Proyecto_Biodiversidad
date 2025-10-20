@@ -1,58 +1,33 @@
 import '../models/punto_muestreo.dart';
+import '../data/mock_data.dart';
 
 class PuntosMuestreoService {
-  // Datos estáticos que coinciden con los mockups
-  static PuntoMuestreo _puntoMuestreoEstatico = PuntoMuestreo(
-    id: '1',
-    nombre: 'Punto 1',
-    ubicacion: Ubicacion(
-      altitud: 1.6610363970634727,
-      longitud: 75.6274835637284,
-    ),
-    metodologia: MetodologiaMuestreo(
-      tipoMuestreo: 'Punto de observación',
-      detalleMuestreo: 'Extensivo',
-      metodoDeteccion: 'Visual',
-    ),
-    parametrosCenso: ParametrosCenso(
-      periodoCenso: 30,
-      radioFijo: 50,
-    ),
-    duracionMuestreo: DuracionMuestreo(
-      fechaInicio: DateTime.parse('2025-08-01 02:48:11'),
-      fechaFinalizacion: DateTime.parse('2025-08-01 02:48:11'),
-    ),
-    muestras: [
-      Muestra(
-        id: '1',
-        nombre: 'Muestra 1',
-        temperatura: 21.0,
-        humedad: 21,
-        condiciones: CondicionesAmbientales(
-          precipitacion: 'Normal',
-          nubosidad: '12%',
-          luminosidad: 'Normal',
-          condiciones: 'Regular',
-        ),
-      ),
-    ],
-  );
-
-  /// Obtiene los puntos de muestreo de una investigación
+  /// Obtiene los puntos de muestreo desde los datos mock
   static Future<List<PuntoMuestreo>> obtenerPuntosPorInvestigacion(String investigacionId) async {
-    await Future.delayed(Duration(milliseconds: 500));
-    return [_puntoMuestreoEstatico];
+    // Simular delay de red para mantener la funcionalidad async
+    await Future.delayed(const Duration(milliseconds: 300));
+    return MockData.getPuntosPorInvestigacion(investigacionId);
   }
 
-  /// Obtiene un punto de muestreo por ID
-  static Future<PuntoMuestreo?> obtenerPuntoPorId(String id) async {
-    await Future.delayed(Duration(milliseconds: 300));
-    return _puntoMuestreoEstatico;
+  /// Obtiene un punto de muestreo por ID desde los datos mock
+  static Future<PuntoMuestreo?> obtenerPuntoPorId(String puntoId, String investigacionId) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return MockData.getPuntoPorId(puntoId, investigacionId);
   }
 
-  /// Obtiene el primer punto de muestreo (para mostrar por defecto)
+  /// Obtiene el primer punto (para pantallas que requieren uno por defecto)
   static Future<PuntoMuestreo> obtenerPuntoPrincipal(String investigacionId) async {
-    await Future.delayed(Duration(milliseconds: 300));
-    return _puntoMuestreoEstatico;
+    final puntos = await obtenerPuntosPorInvestigacion(investigacionId);
+    return puntos.isNotEmpty
+        ? puntos.first
+        : PuntoMuestreo(
+            id: 'sin-id',
+            nombre: 'Punto no disponible',
+            ubicacion: Ubicacion(altitud: 0, longitud: 0),
+            metodologia: MetodologiaMuestreo(tipoMuestreo: '', detalleMuestreo: '', metodoDeteccion: ''),
+            parametrosCenso: ParametrosCenso(periodoCenso: 0, radioFijo: 0),
+            duracionMuestreo: DuracionMuestreo(fechaInicio: DateTime.now(), fechaFinalizacion: DateTime.now()),
+            muestras: const [],
+          );
   }
 }

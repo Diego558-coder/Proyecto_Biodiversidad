@@ -28,16 +28,12 @@ class DetallesEspecieScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Primera sección - Información básica
             _buildInformacionBasicaSection(),
             
-            // Segunda sección - Composición poblacional
             _buildComposicionPoblacionalSection(),
             
-            // Tercera sección - Morfología
             _buildMorfologiaSection(),
             
-            // Cuarta sección - Medidas adicionales y observaciones
             _buildMedidasAdicionalesSection(),
           ],
         ),
@@ -160,7 +156,7 @@ class DetallesEspecieScreen extends StatelessWidget {
           
           SizedBox(height: AppConstants.marginMedium),
           
-          // Alas
+          
           Text('Alas', style: AppTextStyles.subtitle1),
           SizedBox(height: AppConstants.marginSmall),
           
@@ -179,7 +175,6 @@ class DetallesEspecieScreen extends StatelessWidget {
           
           SizedBox(height: AppConstants.marginMedium),
           
-          // Patas
           Text('Patas', style: AppTextStyles.subtitle1),
           SizedBox(height: AppConstants.marginSmall),
           
@@ -209,7 +204,6 @@ class DetallesEspecieScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Información adicional de alas
           _buildMorphologyRow(
             'Distancia\nprimarias\nsecundarias',
             'Envergadura',

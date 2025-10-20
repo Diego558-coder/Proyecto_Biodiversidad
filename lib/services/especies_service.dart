@@ -1,136 +1,29 @@
 import '../models/especie.dart';
+import '../data/mock_data.dart';
 
 class EspeciesService {
-  // Datos estáticos que coinciden con los mockups
-  static List<Especie> _especiesEstaticas = [
-    Especie(
-      id: '1',
-      nombre: 'Cardinalis cardinalis',
-      individuos: 2,
-      informacionBasica: InformacionBasica(
-        metodoDeteccion: 'Visual',
-        distancia: 'No registrada',
-        actividad: 'Parcha',
-        sustrato: 'Arbóreo',
-        estrato: 'Medio',
-      ),
-      composicionPoblacional: ComposicionPoblacional(
-        abundancia: 2,
-        machos: 2,
-        hembras: 2,
-        indeterminados: 2,
-        adultos: 2,
-        juveniles: 2,
-      ),
-      morfologiaDetallada: MorfologiaDetallada(
-        pico: Pico(
-          altura: 'No medida',
-          ancho: 'No medida',
-          anchoNarinas: 'No medida',
-          anchoComisura: 'No medida',
-          curvatura: 'No medida',
-          culmenTotal: 18.5,
-          culmenExpuesto: 12.2,
-        ),
-        alas: Alas(
-          altura: 'No medida',
-          cuerda: 85.3,
-          distanciaPrimariaSecundaria: 'No medida',
-          envergadura: 215.7,
-        ),
-        patas: Patas(
-          garraHallux: 8.4,
-          longitudHallux: 'No medida',
-          longitudTarso: 22.1,
-        ),
-        cola: Cola(
-          longitud: 78.9,
-          graduacion: 'No medida',
-        ),
-        masaCorporal: 42.5,
-      ),
-      observaciones: 'No hay observaciones registradas.',
-    ),
-    Especie(
-      id: '2',
-      nombre: 'Cardinalis cardinalis',
-      individuos: 5,
-      informacionBasica: InformacionBasica(
-        metodoDeteccion: 'Visual',
-        distancia: '10.5',
-        actividad: 'Canto',
-        sustrato: 'Arbóreo',
-        estrato: 'Aéreo',
-      ),
-      composicionPoblacional: ComposicionPoblacional(
-        abundancia: 5,
-        machos: 2,
-        hembras: 3,
-        indeterminados: 0,
-        adultos: 4,
-        juveniles: 1,
-      ),
-      morfologiaDetallada: MorfologiaDetallada(
-        pico: Pico(
-          altura: 'No medida',
-          ancho: 'No medida',
-          anchoNarinas: 'No medida',
-          anchoComisura: 'No medida',
-          curvatura: 'No medida',
-          culmenTotal: 18.5,
-          culmenExpuesto: 12.2,
-        ),
-        alas: Alas(
-          altura: 'No medida',
-          cuerda: 85.3,
-          distanciaPrimariaSecundaria: 'No medida',
-          envergadura: 215.7,
-        ),
-        patas: Patas(
-          garraHallux: 8.4,
-          longitudHallux: 'No medida',
-          longitudTarso: 22.1,
-        ),
-        cola: Cola(
-          longitud: 78.9,
-          graduacion: 'No medida',
-        ),
-        masaCorporal: 42.5,
-      ),
-      observaciones: 'Individuo posado en rama alta',
-    ),
-  ];
-
-  /// Obtiene todas las especies de una investigación
+  /// Obtiene especies desde los datos mock.
   static Future<List<Especie>> obtenerEspeciesPorInvestigacion(String investigacionId) async {
-    await Future.delayed(Duration(milliseconds: 500));
-    return _especiesEstaticas;
+    // Simular delay de red para mantener la funcionalidad async
+    await Future.delayed(const Duration(milliseconds: 300));
+    return MockData.getEspeciesPorInvestigacion(investigacionId);
   }
 
-  /// Obtiene una especie por ID
-  static Future<Especie?> obtenerEspeciePorId(String id) async {
-    await Future.delayed(Duration(milliseconds: 300));
-    try {
-      return _especiesEstaticas.firstWhere((especie) => especie.id == id);
-    } catch (e) {
-      return null;
-    }
+  /// Obtiene una especie por ID desde los datos mock
+  static Future<Especie?> obtenerEspeciePorId(String especieId, String investigacionId) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return MockData.getEspeciePorId(especieId, investigacionId);
   }
 
-  /// Obtiene estadísticas generales de especies
+  /// Estadísticas agregadas a partir de la lista de especies de los datos mock
   static Future<Map<String, dynamic>> obtenerEstadisticas(String investigacionId) async {
-    await Future.delayed(Duration(milliseconds: 300));
-    
-    int totalEspecies = _especiesEstaticas.length;
-    int totalIndividuos = _especiesEstaticas.fold(0, (sum, especie) => sum + especie.individuos);
-    
-    int totalMachos = _especiesEstaticas.fold(0, (sum, especie) => 
-        sum + especie.composicionPoblacional.machos);
-    int totalHembras = _especiesEstaticas.fold(0, (sum, especie) => 
-        sum + especie.composicionPoblacional.hembras);
-    int totalIndeterminados = _especiesEstaticas.fold(0, (sum, especie) => 
-        sum + especie.composicionPoblacional.indeterminados);
-    
+    final especies = await obtenerEspeciesPorInvestigacion(investigacionId);
+    final totalEspecies = especies.length;
+    final totalIndividuos = especies.fold<int>(0, (sum, e) => sum + e.individuos);
+    final totalMachos = especies.fold<int>(0, (sum, e) => sum + e.composicionPoblacional.machos);
+    final totalHembras = especies.fold<int>(0, (sum, e) => sum + e.composicionPoblacional.hembras);
+    final totalIndeterminados = especies.fold<int>(0, (sum, e) => sum + e.composicionPoblacional.indeterminados);
+
     return {
       'totalEspecies': totalEspecies,
       'totalIndividuos': totalIndividuos,

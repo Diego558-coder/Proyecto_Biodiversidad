@@ -48,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Icon(Icons.menu, color: AppColors.textOnPrimary),
         title: Text('Home', style: AppTextStyles.appBarTitle),
         backgroundColor: AppColors.primary,
         actions: [
@@ -171,7 +170,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navegarADetalles(Investigacion investigacion) {
+  void _navegarADetalles(Investigacion investigacion) async {
+    // Navegar directamente ya que los datos completos están en los datos mock
     Navigator.push(
       context,
       MaterialPageRoute(

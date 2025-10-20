@@ -1,0 +1,52 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter: App (Bearer - Pedir token)",
+      "type": "dart",
+      "request": "launch",
+      "flutterMode": "debug",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=API_AUTH_SCHEME=bearer",
+        "--dart-define=API_KEY=${input:API_BEARER_TOKEN}"
+      ]
+    },
+    {
+      "name": "Flutter: App (Bearer - Env var)",
+      "type": "dart",
+      "request": "launch",
+      "flutterMode": "debug",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=API_AUTH_SCHEME=bearer",
+        "--dart-define=API_KEY=${env:BIRD_API_TOKEN}"
+      ]
+    },
+    {
+      "name": "Flutter: App (x-api-key - Pedir token)",
+      "type": "dart",
+      "request": "launch",
+      "flutterMode": "debug",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=API_AUTH_SCHEME=x-api-key",
+        "--dart-define=API_KEY=${input:API_X_API_KEY}"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "API_BEARER_TOKEN",
+      "type": "promptString",
+      "description": "Pega aquí tu token Bearer para la API",
+      "password": true
+    },
+    {
+      "id": "API_X_API_KEY",
+      "type": "promptString",
+      "description": "Pega aquí tu x-api-key para la API",
+      "password": true
+    }
+  ]
+}

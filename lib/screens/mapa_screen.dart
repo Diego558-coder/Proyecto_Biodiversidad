@@ -17,7 +17,7 @@ class MapaScreen extends StatefulWidget {
 }
 
 class _MapaScreenState extends State<MapaScreen> {
-  PuntoMuestreo? puntoMuestreo;
+  List<PuntoMuestreo> puntos = [];
   bool isLoading = true;
   String? errorMessage;
 
@@ -34,10 +34,10 @@ class _MapaScreenState extends State<MapaScreen> {
         errorMessage = null;
       });
 
-      final punto = await PuntosMuestreoService.obtenerPuntoPrincipal(widget.investigacionId);
+      final lista = await PuntosMuestreoService.obtenerPuntosPorInvestigacion(widget.investigacionId);
       
       setState(() {
-        puntoMuestreo = punto;
+        puntos = lista;
         isLoading = false;
       });
     } catch (e) {
@@ -91,7 +91,7 @@ class _MapaScreenState extends State<MapaScreen> {
       );
     }
 
-    if (puntoMuestreo == null) {
+    if (puntos.isEmpty) {
       return Center(
         child: Text(AppConstants.noDataMessage, style: AppTextStyles.bodySecondary),
       );
@@ -169,53 +169,30 @@ class _MapaScreenState extends State<MapaScreen> {
             ),
           ),
           
-          // Información del punto de muestreo
+          // Información de puntos de muestreo desde la API
           Padding(
             padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Información del punto de muestreo',
+                  'Puntos de muestreo (${puntos.length})',
                   style: AppTextStyles.subtitle1,
                 ),
                 SizedBox(height: AppConstants.marginSmall),
-                
-                _buildInfoItem('${puntoMuestreo!.nombre}.'),
-                _buildInfoItem('Ubicación:'),
-                _buildInfoItem('Altitud: ${puntoMuestreo!.ubicacion.altitud}.'),
-                _buildInfoItem('Longitud: ${puntoMuestreo!.ubicacion.longitud}W.'),
-                
-                SizedBox(height: AppConstants.marginMedium),
-                
-                Text(
-                  'Metodología de muestreo:',
-                  style: AppTextStyles.subtitle1,
-                ),
-                SizedBox(height: AppConstants.marginSmall / 2),
-                _buildInfoItem('Tipo de muestreo: ${puntoMuestreo!.metodologia.tipoMuestreo}.'),
-                _buildInfoItem('Detalle del muestreo: ${puntoMuestreo!.metodologia.detalleMuestreo}.'),
-                _buildInfoItem('Método de detección: ${puntoMuestreo!.metodologia.metodoDeteccion}.'),
-                
-                SizedBox(height: AppConstants.marginMedium),
-                
-                Text(
-                  'Parámetros del censo:',
-                  style: AppTextStyles.subtitle1,
-                ),
-                SizedBox(height: AppConstants.marginSmall / 2),
-                _buildInfoItem('Periodo de censo: ${puntoMuestreo!.parametrosCenso.periodoCenso}. Radio fijo: ${puntoMuestreo!.parametrosCenso.radioFijo}.'),
-                
-                SizedBox(height: AppConstants.marginMedium),
-                
-                Text(
-                  'Duración del muestreo:',
-                  style: AppTextStyles.subtitle1,
-                ),
-                SizedBox(height: AppConstants.marginSmall / 2),
-                _buildInfoItem('Fecha de inicio: ${_formatearFecha(puntoMuestreo!.duracionMuestreo.fechaInicio)}.'),
-                _buildInfoItem('Fecha de finalización: ${_formatearFecha(puntoMuestreo!.duracionMuestreo.fechaFinalizacion)}.'),
-                
+                ...puntos.map((p) => Padding(
+                  padding: EdgeInsets.only(bottom: AppConstants.marginSmall),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoItem(p.nombre),
+                      _buildInfoItem('Altitud: ${p.ubicacion.altitud}'),
+                      _buildInfoItem('Longitud: ${p.ubicacion.longitud}'),
+                      if (p.metodologia.tipoMuestreo.isNotEmpty)
+                        _buildInfoItem('Tipo de muestreo: ${p.metodologia.tipoMuestreo}'),
+                    ],
+                  ),
+                )),
                 SizedBox(height: AppConstants.marginLarge),
               ],
             ),
@@ -238,7 +215,7 @@ class _MapaScreenState extends State<MapaScreen> {
 
   @override
   Widget? get bottomNavigationBar {
-    if (puntoMuestreo == null) return null;
+    if (puntos.isEmpty) return null;
     
     return Container(
       padding: EdgeInsets.all(AppConstants.paddingMedium),
@@ -267,33 +244,33 @@ class _MapaScreenState extends State<MapaScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tipo de muestreo: ${puntoMuestreo!.metodologia.tipoMuestreo}.',
+                  'Tipo de muestreo: ${puntos.first.metodologia.tipoMuestreo}.',
                   style: AppTextStyles.caption,
                 ),
                 Text(
-                  'Detalle del muestreo: ${puntoMuestreo!.metodologia.detalleMuestreo}.',
+                  'Detalle del muestreo: ${puntos.first.metodologia.detalleMuestreo}.',
                   style: AppTextStyles.caption,
                 ),
                 Text(
-                  'Método de detección: ${puntoMuestreo!.metodologia.metodoDeteccion}.',
+                  'Método de detección: ${puntos.first.metodologia.metodoDeteccion}.',
                   style: AppTextStyles.caption,
                 ),
                 SizedBox(height: AppConstants.marginSmall),
                 
                 Text('Parámetros del censo:', style: AppTextStyles.subtitle2),
                 Text(
-                  'Periodo de censo: ${puntoMuestreo!.parametrosCenso.periodoCenso}. Radio fijo: ${puntoMuestreo!.parametrosCenso.radioFijo}.',
+                  'Periodo de censo: ${puntos.first.parametrosCenso.periodoCenso}. Radio fijo: ${puntos.first.parametrosCenso.radioFijo}.',
                   style: AppTextStyles.caption,
                 ),
                 SizedBox(height: AppConstants.marginSmall),
                 
                 Text('Duración del muestreo:', style: AppTextStyles.subtitle2),
                 Text(
-                  'Fecha de inicio: ${_formatearFecha(puntoMuestreo!.duracionMuestreo.fechaInicio)}.',
+                  'Fecha de inicio: ${_formatearFecha(puntos.first.duracionMuestreo.fechaInicio)}.',
                   style: AppTextStyles.caption,
                 ),
                 Text(
-                  'Fecha de finalización: ${_formatearFecha(puntoMuestreo!.duracionMuestreo.fechaFinalizacion)}.',
+                  'Fecha de finalización: ${_formatearFecha(puntos.first.duracionMuestreo.fechaFinalizacion)}.',
                   style: AppTextStyles.caption,
                 ),
                 
@@ -302,7 +279,7 @@ class _MapaScreenState extends State<MapaScreen> {
                 Text('Muestras del punto', style: AppTextStyles.subtitle1),
                 SizedBox(height: AppConstants.marginSmall),
                 
-                ...puntoMuestreo!.muestras.map((muestra) => _buildMuestraCard(muestra)).toList(),
+                ...puntos.first.muestras.map((muestra) => _buildMuestraCard(muestra)).toList(),
               ],
             ),
           ),
