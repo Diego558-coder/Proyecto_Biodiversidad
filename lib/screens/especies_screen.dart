@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 import '../constants/app_constants.dart';
+import '../models/investigacion.dart';
+import '../models/punto_muestreo.dart';
 import '../widgets/species_stats_card.dart';
-import '../services/especies_service.dart';
 import '../models/especie.dart';
 import 'detalles_especie_screen.dart';
 
 class EspeciesScreen extends StatefulWidget {
-  final String investigacionId;
+  final Investigacion investigacion;
 
-  EspeciesScreen({required this.investigacionId});
+  const EspeciesScreen({required this.investigacion, Key? key}) : super(key: key);
 
   @override
-  _EspeciesScreenState createState() => _EspeciesScreenState();
+  State<EspeciesScreen> createState() => _EspeciesScreenState();
 }
 
 class _EspeciesScreenState extends State<EspeciesScreen> {
-  List<Especie> especies = [];
+  List<Especie> especies = const [];
   Map<String, dynamic>? estadisticas;
   bool isLoading = true;
   String? errorMessage;
@@ -25,27 +26,22 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarDatos();
+    _prepararDatos();
   }
 
-  Future<void> _cargarDatos() async {
+  void _prepararDatos() {
     try {
-      setState(() {
-        isLoading = true;
-        errorMessage = null;
-      });
+      final lista = _extraerEspecies(widget.investigacion.puntosMuestreo);
+      final stats = _calcularEstadisticas(lista);
 
-      final especiesData = await EspeciesService.obtenerEspeciesPorInvestigacion(widget.investigacionId);
-      final stats = await EspeciesService.obtenerEstadisticas(widget.investigacionId);
-      
       setState(() {
-        especies = especiesData;
+        especies = lista;
         estadisticas = stats;
         isLoading = false;
       });
     } catch (e) {
       setState(() {
-        errorMessage = AppConstants.errorMessage;
+        errorMessage = 'No fue posible preparar la información de especies.';
         isLoading = false;
       });
     }
@@ -59,10 +55,13 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Especies observadas', style: AppTextStyles.appBarTitle.copyWith(fontSize: 16)),
-            Text('Muestra 1', style: AppTextStyles.appBarTitle.copyWith(
-              fontSize: 12, 
-              color: AppColors.textOnPrimary.withOpacity(0.7)
-            )),
+            Text(
+              widget.investigacion.titulo,
+              style: AppTextStyles.appBarTitle.copyWith(
+                fontSize: 12,
+                color: AppColors.textOnPrimary.withOpacity(0.7),
+              ),
+            ),
           ],
         ),
         backgroundColor: AppColors.primary,
@@ -92,12 +91,7 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
           children: [
             Icon(Icons.error_outline, size: 64, color: AppColors.error),
             SizedBox(height: AppConstants.marginMedium),
-            Text(errorMessage!, style: AppTextStyles.bodyError),
-            SizedBox(height: AppConstants.marginMedium),
-            ElevatedButton(
-              onPressed: _cargarDatos,
-              child: Text('Reintentar'),
-            ),
+            Text(errorMessage!, style: AppTextStyles.bodyError, textAlign: TextAlign.center),
           ],
         ),
       );
@@ -113,34 +107,35 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
       padding: EdgeInsets.all(AppConstants.paddingMedium),
       child: Column(
         children: [
-          // Estadísticas
-          Container(
-            padding: EdgeInsets.all(AppConstants.paddingMedium),
-            decoration: BoxDecoration(
-              color: AppColors.primaryWithOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+          
+          if (estadisticas != null)
+            Container(
+              padding: EdgeInsets.all(AppConstants.paddingMedium),
+              decoration: BoxDecoration(
+                color: AppColors.primaryWithOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  SpeciesStatsCard(
+                    number: estadisticas!['totalEspecies'].toString(),
+                    label: 'Especies\nobservadas',
+                  ),
+                  SpeciesStatsCard(
+                    number: estadisticas!['totalIndividuos'].toString(),
+                    label: 'Individuos\ntotales',
+                  ),
+                  SpeciesStatsCard(
+                    number: '${estadisticas!['totalMachos']}/${estadisticas!['totalHembras']}/${estadisticas!['totalIndeterminados']}',
+                    label: 'Machos/\nHembras/\nIndeterminados',
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                SpeciesStatsCard(
-                  number: estadisticas?['totalEspecies'].toString() ?? '0',
-                  label: 'Especies\nobservadas',
-                ),
-                SpeciesStatsCard(
-                  number: estadisticas?['totalIndividuos'].toString() ?? '0',
-                  label: 'Individuos\ntotales',
-                ),
-                SpeciesStatsCard(
-                  number: '${estadisticas?['totalMachos'] ?? 0}/${estadisticas?['totalHembras'] ?? 0}/${estadisticas?['totalIndeterminados'] ?? 0}',
-                  label: 'Machos/\nHembras/\nIndeterminados',
-                ),
-              ],
-            ),
-          ),
           SizedBox(height: AppConstants.marginMedium),
           
-          // Título de especies registradas
+          
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
@@ -150,7 +145,7 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
           ),
           SizedBox(height: AppConstants.marginMedium),
           
-          // Lista de especies
+          
           ...especies.map((especie) => _buildSpeciesCard(especie)).toList(),
         ],
       ),
@@ -169,7 +164,7 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Encabezado con nombre e imagen placeholder
+            
             Row(
               children: [
                 Expanded(
@@ -198,8 +193,7 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
               style: AppTextStyles.cardSubtitle,
             ),
             SizedBox(height: AppConstants.marginSmall),
-            
-            // Información básica
+
             _buildDetailRow('Método de detección', especie.informacionBasica.metodoDeteccion),
             _buildDetailRow('Distancia', especie.informacionBasica.distancia),
             _buildDetailRow('Actividad', especie.informacionBasica.actividad),
@@ -208,7 +202,7 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
             
             SizedBox(height: AppConstants.marginSmall),
             
-            // Composición poblacional con chips
+            
             Wrap(
               spacing: AppConstants.marginSmall,
               runSpacing: AppConstants.marginSmall / 2,
@@ -236,7 +230,7 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
               ],
             ),
             
-            // Indeterminados (si los hay)
+            
             if (especie.composicionPoblacional.indeterminados > 0) ...[
               SizedBox(height: AppConstants.marginSmall),
               SpeciesStatusChip(
@@ -245,7 +239,6 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
               ),
             ],
             
-            // Observaciones
             if (especie.observaciones != null && especie.observaciones!.isNotEmpty) ...[
               SizedBox(height: AppConstants.marginSmall),
               Row(
@@ -265,7 +258,6 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
             
             SizedBox(height: AppConstants.marginMedium),
             
-            // Botón para ver detalles completos
             Center(
               child: ElevatedButton(
                 onPressed: () => _navegarADetallesEspecie(especie),
@@ -304,5 +296,33 @@ class _EspeciesScreenState extends State<EspeciesScreen> {
         builder: (context) => DetallesEspecieScreen(especie: especie),
       ),
     );
+  }
+
+  List<Especie> _extraerEspecies(List<PuntoMuestreo> puntos) {
+    final resultado = <Especie>[];
+    for (final punto in puntos) {
+      for (final muestra in punto.muestras) {
+        for (final observacion in muestra.especiesObservadas) {
+          resultado.add(Especie.fromApiObservation(observacion));
+        }
+      }
+    }
+    return resultado;
+  }
+
+  Map<String, dynamic> _calcularEstadisticas(List<Especie> lista) {
+    final totalEspecies = lista.length;
+    final totalIndividuos = lista.fold<int>(0, (sum, especie) => sum + especie.individuos);
+    final totalMachos = lista.fold<int>(0, (sum, especie) => sum + especie.composicionPoblacional.machos);
+    final totalHembras = lista.fold<int>(0, (sum, especie) => sum + especie.composicionPoblacional.hembras);
+    final totalIndeterminados = lista.fold<int>(0, (sum, especie) => sum + especie.composicionPoblacional.indeterminados);
+
+    return {
+      'totalEspecies': totalEspecies,
+      'totalIndividuos': totalIndividuos,
+      'totalMachos': totalMachos,
+      'totalHembras': totalHembras,
+      'totalIndeterminados': totalIndeterminados,
+    };
   }
 }

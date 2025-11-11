@@ -1,3 +1,5 @@
+import 'punto_muestreo.dart';
+
 class Especie {
   final String id;
   final String nombre;
@@ -39,6 +41,41 @@ class Especie {
       'morfologiaDetallada': morfologiaDetallada.toJson(),
       'observaciones': observaciones,
     };
+  }
+
+  factory Especie.fromApiObservation(ObservacionEspecie observacion) {
+    final distancia = observacion.distancia != null
+        ? '${observacion.distancia!.toStringAsFixed(1)} m'
+        : 'Sin dato';
+
+    final infoBasica = InformacionBasica(
+      metodoDeteccion: observacion.deteccion,
+      distancia: distancia,
+      actividad: observacion.actividad ?? 'No registrada',
+      sustrato: observacion.sustrato ?? 'No registrado',
+      estrato: observacion.estrato ?? 'No registrado',
+    );
+
+    final composicion = ComposicionPoblacional(
+      abundancia: observacion.abundancia,
+      machos: observacion.machos ?? 0,
+      hembras: observacion.hembras ?? 0,
+      indeterminados: observacion.indeterminados ?? 0,
+      adultos: observacion.adultos ?? 0,
+      juveniles: observacion.juveniles ?? 0,
+    );
+
+    final morfologia = _mapearMorfologia(observacion.morfologia);
+
+    return Especie(
+      id: observacion.id,
+      nombre: observacion.nombre,
+      individuos: observacion.abundancia,
+      informacionBasica: infoBasica,
+      composicionPoblacional: composicion,
+      morfologiaDetallada: morfologia,
+      observaciones: observacion.observacion ?? '',
+    );
   }
 }
 
@@ -152,6 +189,82 @@ class MorfologiaDetallada {
       'masaCorporal': masaCorporal,
     };
   }
+}
+
+MorfologiaDetallada _mapearMorfologia(Map<String, dynamic> datos) {
+  if (datos.isEmpty) {
+    return MorfologiaDetallada(
+      pico: Pico(),
+      alas: Alas(),
+      patas: Patas(),
+      cola: Cola(),
+    );
+  }
+
+  if (datos.containsKey('bill') || datos.containsKey('wings')) {
+    final bill = (datos['bill'] as Map<String, dynamic>?) ?? const {};
+    final wings = (datos['wings'] as Map<String, dynamic>?) ?? const {};
+    final legs = (datos['legs'] as Map<String, dynamic>?) ?? const {};
+    final tail = (datos['tail'] as Map<String, dynamic>?) ?? const {};
+
+    return MorfologiaDetallada(
+      pico: Pico(
+        altura: _stringOrNull(bill['height']),
+        ancho: _stringOrNull(bill['width']),
+        anchoNarinas: _stringOrNull(bill['widthNostrils']),
+        anchoComisura: _stringOrNull(bill['widthCommissure']),
+        curvatura: _stringOrNull(bill['curvature']),
+        culmenTotal: _doubleOrNull(bill['culmenTotal']),
+        culmenExpuesto: _doubleOrNull(bill['culmenExposed']),
+      ),
+      alas: Alas(
+        altura: _stringOrNull(wings['area']),
+        cuerda: _doubleOrNull(wings['chord']),
+        distanciaPrimariaSecundaria: _stringOrNull(wings['primarySecondaryDistance']),
+        envergadura: _doubleOrNull(wings['wingspan']),
+      ),
+      patas: Patas(
+        garraHallux: _doubleOrNull(legs['halluxClaw']),
+        longitudHallux: _stringOrNull(legs['halluxLength']),
+        longitudTarso: _doubleOrNull(legs['tarsusLength']),
+      ),
+      cola: Cola(
+        longitud: _doubleOrNull(tail['length']),
+        graduacion: _stringOrNull(tail['graduation']),
+      ),
+      masaCorporal: _doubleOrNull(tail['bodyMass']),
+    );
+  }
+
+  return MorfologiaDetallada(
+    pico: Pico(
+      curvatura: _stringOrNull(datos['curvature']),
+      culmenTotal: _doubleOrNull(datos['billLength'] ?? datos['totalLength']),
+      culmenExpuesto: _doubleOrNull(datos['billLength']),
+    ),
+    alas: Alas(
+      cuerda: _doubleOrNull(datos['wingChord']),
+    ),
+    patas: Patas(
+      longitudTarso: _doubleOrNull(datos['tarsusLength']),
+    ),
+    cola: Cola(
+      longitud: _doubleOrNull(datos['tailLength']),
+    ),
+  );
+}
+
+String? _stringOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is String && value.isEmpty) return null;
+  return value.toString();
+}
+
+double? _doubleOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  return double.tryParse(value.toString());
 }
 
 class Pico {

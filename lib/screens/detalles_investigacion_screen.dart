@@ -41,7 +41,6 @@ class DetallesInvestigacionScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Descripción del proyecto
             Text(
               'Descripción del proyecto',
               style: AppTextStyles.subtitle1,
@@ -50,7 +49,6 @@ class DetallesInvestigacionScreen extends StatelessWidget {
             Text(investigacion.descripcion, style: AppTextStyles.body2),
             SizedBox(height: AppConstants.marginMedium),
             
-            // Objetivos
             _buildSection(
               icon: Icons.check_circle,
               title: 'Objetivos',
@@ -59,7 +57,6 @@ class DetallesInvestigacionScreen extends StatelessWidget {
               ).toList(),
             ),
             
-            // Resultados
             _buildSection(
               icon: Icons.analytics,
               title: 'Resultados',
@@ -68,7 +65,7 @@ class DetallesInvestigacionScreen extends StatelessWidget {
               ).toList(),
             ),
             
-            // Datos generales
+            
             _buildSection(
               title: 'Datos generales',
               children: [
@@ -113,7 +110,7 @@ class DetallesInvestigacionScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ubicación
+            
             Text('Ubicación de estudio', style: AppTextStyles.subtitle1),
             SizedBox(height: AppConstants.marginSmall),
             
@@ -125,7 +122,7 @@ class DetallesInvestigacionScreen extends StatelessWidget {
             
             SizedBox(height: AppConstants.marginSmall),
             
-            // Coordenadas GPS
+            
             Container(
               padding: EdgeInsets.all(AppConstants.paddingSmall),
               decoration: BoxDecoration(
@@ -160,7 +157,7 @@ class DetallesInvestigacionScreen extends StatelessWidget {
             
             SizedBox(height: AppConstants.marginMedium),
             
-            // Equipo de trabajo
+            
             Text('Equipo de trabajo', style: AppTextStyles.subtitle1),
             SizedBox(height: AppConstants.marginSmall / 2),
             
@@ -169,7 +166,7 @@ class DetallesInvestigacionScreen extends StatelessWidget {
             
             SizedBox(height: AppConstants.marginMedium),
             
-            // Botones de navegación
+            
             Row(
               children: [
                 Expanded(
@@ -249,7 +246,7 @@ class DetallesInvestigacionScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MapaScreen(investigacionId: investigacion.id),
+        builder: (context) => MapaScreen(investigacion: investigacion),
       ),
     );
   }
@@ -258,7 +255,7 @@ class DetallesInvestigacionScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EspeciesScreen(investigacionId: investigacion.id),
+        builder: (context) => EspeciesScreen(investigacion: investigacion),
       ),
     );
   }

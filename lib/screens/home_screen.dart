@@ -13,42 +13,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Investigacion> investigaciones = [];
-  bool isLoading = true;
-  String? errorMessage;
+  late Future<List<Investigacion>> _investigacionesFuture;
 
   @override
   void initState() {
     super.initState();
-    _cargarInvestigaciones();
-  }
-
-  Future<void> _cargarInvestigaciones() async {
-    try {
-      setState(() {
-        isLoading = true;
-        errorMessage = null;
-      });
-
-      final datos = await InvestigacionService.obtenerInvestigaciones();
-      
-      setState(() {
-        investigaciones = datos;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        errorMessage = AppConstants.errorMessage;
-        isLoading = false;
-      });
-    }
+    _investigacionesFuture = InvestigacionService.obtenerInvestigaciones();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home', style: AppTextStyles.appBarTitle),
+        title: Text('Lista de Investigaciones', style: AppTextStyles.appBarTitle),
         backgroundColor: AppColors.primary,
         actions: [
           CircleAvatar(
@@ -61,124 +38,136 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       backgroundColor: AppColors.background,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(AppConstants.paddingMedium),
-            child: Text(
-              AppConstants.homeTitle,
-              style: AppTextStyles.title2,
-            ),
-          ),
-          Expanded(
-            child: _buildContent(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    if (isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: AppColors.primary),
-            SizedBox(height: AppConstants.marginMedium),
-            Text(
-              AppConstants.loadingMessage,
-              style: AppTextStyles.body2,
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: AppConstants.iconSizeLarge * 2,
-              color: AppColors.error,
-            ),
-            SizedBox(height: AppConstants.marginMedium),
-            Text(
-              errorMessage!,
-              style: AppTextStyles.bodyError,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: AppConstants.marginMedium),
-            ElevatedButton(
-              onPressed: _cargarInvestigaciones,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
+      body: FutureBuilder<List<Investigacion>>(
+        future: _investigacionesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: AppConstants.iconSizeLarge * 2,
+                    color: AppColors.error,
+                  ),
+                  SizedBox(height: AppConstants.marginMedium),
+                  Text(
+                    AppConstants.errorMessage,
+                    style: AppTextStyles.bodyError,
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: AppConstants.marginMedium),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _investigacionesFuture = InvestigacionService.obtenerInvestigaciones();
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.textOnPrimary,
+                    ),
+                    child: Text('Reintentar'),
+                  ),
+                ],
               ),
-              child: Text('Reintentar'),
-            ),
-          ],
-        ),
-      );
-    }
+            );
+          } else if (snapshot.hasData) {
+            final investigaciones = snapshot.data!;
+            if (investigaciones.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off,
+                      size: AppConstants.iconSizeLarge * 2,
+                      color: AppColors.textSecondary,
+                    ),
+                    SizedBox(height: AppConstants.marginMedium),
+                    Text(
+                      AppConstants.noDataMessage,
+                      style: AppTextStyles.bodySecondary,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
 
-    if (investigaciones.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: AppConstants.iconSizeLarge * 2,
-              color: AppColors.textSecondary,
-            ),
-            SizedBox(height: AppConstants.marginMedium),
-            Text(
-              AppConstants.noDataMessage,
-              style: AppTextStyles.bodySecondary,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _cargarInvestigaciones,
-      color: AppColors.primary,
-      child: ListView.builder(
-        physics: AlwaysScrollableScrollPhysics(),
-        itemCount: investigaciones.length,
-        itemBuilder: (context, index) {
-          final investigacion = investigaciones[index];
-          return InvestigacionCard(
-            titulo: investigacion.titulo,
-            ubicacion: investigacion.ubicacion,
-            descripcion: investigacion.descripcion,
-            fecha: investigacion.fecha,
-            habitat: investigacion.habitat,
-            vegetacion: investigacion.vegetacion,
-            estado: investigacion.estado,
-            onPressed: () => _navegarADetalles(investigacion),
-          );
+            return RefreshIndicator(
+              onRefresh: () async {
+                setState(() {
+                  _investigacionesFuture = InvestigacionService.obtenerInvestigaciones();
+                });
+              },
+              color: AppColors.primary,
+              child: ListView.builder(
+                physics: AlwaysScrollableScrollPhysics(),
+                itemCount: investigaciones.length,
+                itemBuilder: (context, index) {
+                  final investigacion = investigaciones[index];
+                  return InvestigacionCard(
+                    titulo: investigacion.titulo,
+                    ubicacion: investigacion.ubicacion,
+                    descripcion: investigacion.descripcion,
+                    fecha: investigacion.fecha,
+                    habitat: investigacion.habitat,
+                    vegetacion: investigacion.vegetacion,
+                    estado: investigacion.estado,
+                    onPressed: () => _navegarADetalles(investigacion),
+                  );
+                },
+              ),
+            );
+          } else {
+            return Center(child: Text('No hay datos disponibles'));
+          }
         },
       ),
     );
   }
 
-  void _navegarADetalles(Investigacion investigacion) async {
-    // Navegar directamente ya que los datos completos están en los datos mock
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetallesInvestigacionScreen(
-          investigacion: investigacion,
-        ),
+  Future<void> _navegarADetalles(Investigacion investigacion) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
       ),
     );
+
+    try {
+      final detalle = await InvestigacionService.obtenerInvestigacionPorId(investigacion.id);
+      if (!mounted) return;
+      Navigator.pop(context); // cerrar diálogo
+
+      if (detalle == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se encontraron detalles para esta investigación.')),
+        );
+        return;
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetallesInvestigacionScreen(
+            investigacion: detalle,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar detalles: $e')),
+      );
+    }
   }
 }

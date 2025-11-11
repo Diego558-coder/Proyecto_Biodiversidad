@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
-  // Títulos
+
   static const TextStyle title1 = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
@@ -21,7 +21,6 @@ class AppTextStyles {
     color: AppColors.textPrimary,
   );
   
-  // Subtítulos
   static const TextStyle subtitle1 = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
@@ -34,7 +33,6 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
   
-  // Texto del cuerpo
   static const TextStyle body1 = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.normal,
@@ -47,7 +45,6 @@ class AppTextStyles {
     color: AppColors.textPrimary,
   );
   
-  // Texto pequeño
   static const TextStyle caption = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.normal,
@@ -61,14 +58,12 @@ class AppTextStyles {
     letterSpacing: 1.5,
   );
   
-  // Texto de botones
   static const TextStyle button = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.5,
   );
   
-  // Estilos específicos de la app
   static const TextStyle appBarTitle = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
@@ -105,7 +100,6 @@ class AppTextStyles {
     color: AppColors.primary,
   );
   
-  // Variantes con colores específicos
   static TextStyle bodyPrimary = body1.copyWith(color: AppColors.primary);
   static TextStyle bodySecondary = body1.copyWith(color: AppColors.textSecondary);
   static TextStyle bodyError = body1.copyWith(color: AppColors.error);

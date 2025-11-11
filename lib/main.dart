@@ -11,13 +11,11 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Configuración de orientación
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
     
-    // Configuración de UI de sistema
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: AppColors.primaryDark,
@@ -64,4 +62,5 @@ class MyApp extends StatelessWidget {
       home: HomeScreen(),
     );
   }
+
 }

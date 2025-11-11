@@ -1,22 +1,26 @@
 import '../models/investigacion.dart';
-import '../data/mock_data.dart';
+import 'api_service.dart';
 
 class InvestigacionService {
-  /// Obtiene todas las investigaciones desde los datos mock.
+  static final ApiService _apiService = ApiService();
+
   static Future<List<Investigacion>> obtenerInvestigaciones() async {
-    // Simular delay de red para mantener la funcionalidad async
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockData.investigaciones;
+    final respuesta = await _apiService.getResearch();
+  return respuesta
+    .whereType<Map<String, dynamic>>()
+    .map((item) => Investigacion.fromApi(item))
+    .toList();
   }
 
-  /// Obtiene detalle de una investigación por ID desde los datos mock.
   static Future<Investigacion?> obtenerInvestigacionPorId(String id) async {
-    // Simular delay de red para mantener la funcionalidad async
-    await Future.delayed(const Duration(milliseconds: 300));
-    return MockData.getInvestigacionPorId(id);
+    final data = await _apiService.getResearchDetails(id);
+    final research = data['research'] as Map<String, dynamic>?;
+    if (research == null) {
+      return null;
+    }
+    return Investigacion.fromApi(research);
   }
 
-  /// Búsqueda simple en los datos mock.
   static Future<List<Investigacion>> buscarInvestigaciones(String termino) async {
     final all = await obtenerInvestigaciones();
     if (termino.isEmpty) return all;
@@ -27,7 +31,6 @@ class InvestigacionService {
     ).toList();
   }
 
-  /// Filtra por estado en los datos mock.
   static Future<List<Investigacion>> filtrarPorEstado(String estado) async {
     final all = await obtenerInvestigaciones();
     return all.where((inv) => inv.estado.toLowerCase() == estado.toLowerCase()).toList();
